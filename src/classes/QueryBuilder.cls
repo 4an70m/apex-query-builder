@@ -18,7 +18,7 @@ public with sharing class QueryBuilder {
         this.fieldTokens = new Set<String>();
         this.sortingOrder = new List<Order>();
         this.conditionsManager = new ConditionsManager(this);
-        this.postQueryUpdater = new postQueryUpdater(this);
+        this.postQueryUpdater = new PostQueryUpdater(this);
         this.queryLimit = 0;
         this.countResult = null;
     }
