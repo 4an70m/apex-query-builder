@@ -240,43 +240,49 @@ public virtual with sharing class QueryBuilder {
     }
 
     //orders
-    public QueryBuilder orderAsc(String field) {
+    public QueryBuilder addOrderAsc(String field) {
         this.sortingOrder.add(new AscOrder(field));
         return this;
     }
 
-    public QueryBuilder orderAsc(SObjectField sObjectField) {
+    public QueryBuilder addOrderAsc(SObjectField sObjectField) {
         this.sortingOrder.add(new AscOrder(sObjectField.getDescribe().getName()));
         return this;
     }
 
-    public QueryBuilder orderDesc(String field) {
+    public QueryBuilder addOrderDesc(String field) {
         this.sortingOrder.add(new DescOrder(field));
         return this;
     }
 
-    public QueryBuilder orderDesc(SObjectField sObjectField) {
+    public QueryBuilder addOrderDesc(SObjectField sObjectField) {
         this.sortingOrder.add(new DescOrder(sObjectField.getDescribe().getName()));
         return this;
     }
 
     //group by
-    public QueryBuilder groupBy(SObjectField field) {
-        return this.groupBy(field.getDescribe().getName());
+    public QueryBuilder addGroupBy(SObjectField field) {
+        return this.addGroupBy(field.getDescribe().getName());
     }
 
-    public QueryBuilder groupBy(String fields) {
-        return this.groupBy(fields.trim().split(','));
+    public QueryBuilder addGroupBy(String fields) {
+        return this.addGroupBy(fields.trim().split(','));
     }
 
-    public QueryBuilder groupBy(List<String> fields) {
+    public QueryBuilder addGroupBy(List<String> fields) {
         this.groupByFields.addAll(fields);
         return this;
     }
 
-    public QueryBuilder groupBy(Set<String> fields) {
+    public QueryBuilder addGroupBy(Set<String> fields) {
         this.groupByFields.addAll(fields);
         return this;
+    }
+
+    //stub method
+    public StubbedQueryBuilder buildStub() {
+        this.stubbedQueryBuilder = new StubbedQueryBuilder(this);
+        return this.stubbedQueryBuilder;
     }
 
     //pre-result managers
@@ -956,6 +962,202 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
+    //mocking provider
+    public class QueryBuilderMockProvider implements System.StubProvider {
+
+        private StubbedQueryBuilder stubbedQueryBuilder;
+
+        public QueryBuilderMockProvider(StubbedQueryBuilder stubbedQueryBuilder) {
+            this.stubbedQueryBuilder = stubbedQueryBuilder;
+        }
+
+        public Object handleMethodCall(Object stubbedObject, String stubbedMethodName,
+                Type returnType, List<Type> listOfParamTypes, List<String> listOfParamNames,
+                List<Object> listOfArgs) {
+            switch on stubbedMethodName {
+                when 'toString' {
+                    return this.stubbedQueryBuilder.stubToString();
+                }
+                when 'toStringCount' {
+                    return this.stubbedQueryBuilder.stubToStringCount();
+                }
+                when 'toCount' {
+                    return this.stubbedQueryBuilder.stubToCount();
+                }
+                when 'toList' {
+                    return this.stubbedQueryBuilder.stubToList();
+                }
+                when 'toMap' {
+                    if (listOfArgs.isEmpty()) {
+                        return this.stubbedQueryBuilder.stubToMap();
+                    } else {
+                        return this.stubbedQueryBuilder.stubToMap((Map<Id, SObject>)listOfArgs[0]);
+                    }
+                }
+                when 'toSObject' {
+                    return this.stubbedQueryBuilder.stubToSObject();
+                }
+                when 'toIdSet' {
+                    return this.stubbedQueryBuilder.stubToIdSet();
+                }
+                when 'extractIds' {
+                    return this.stubbedQueryBuilder.stubExtractIds((String)listOfArgs[0]);
+                }
+                when 'extractField' {
+                    return this.stubbedQueryBuilder.stubExtractField((String)listOfArgs[0]);
+                }
+                when 'addConditions' {
+                    return this.stubbedQueryBuilder.stubbedConditionsManager;
+                }
+            }
+            return stubbedObject;
+        }
+    }
+
+    public class ConditionsManagerMockProvider implements System.StubProvider {
+
+        public StubbedQueryBuilder stubbedQueryBuilder;
+
+        public ConditionsManagerMockProvider(StubbedQueryBuilder stubbedQueryBuilder) {
+            this.stubbedQueryBuilder = stubbedQueryBuilder;
+        }
+
+        public Object handleMethodCall(Object stubbedObject, String stubbedMethodName,
+                Type returnType, List<Type> listOfParamTypes, List<String> listOfParamNames,
+                List<Object> listOfArgs) {
+            switch on stubbedMethodName {
+                when 'endConditions' {
+                    return this.stubbedQueryBuilder;
+                }
+                when 'toString' {
+                    return '';
+                }
+            }
+            return stubbedObject;
+        }
+    }
+
+    public class StubbedQueryBuilder extends QueryBuilder{
+
+        private QueryBuilder parent;
+        private String queryString;
+        private String queryCountString;
+        private Integer countResult;
+        private List<SObject> toListResult;
+        private Map<Id, SObject> toMapResult;
+        private Map<Id, SObject> toMapFillResult;
+        private SObject toSobjectResult;
+        private Set<Id> toSetIdResult;
+        private Set<Id> extractedIdsResult;
+        private List<Object> extractedFieldsResult;
+        private ConditionsManager stubbedConditionsManager;
+        private QueryBuilder stubbedQueryBuilder;
+
+        public StubbedQueryBuilder(QueryBuilder parent) {
+            super();
+            this.parent = parent;
+            this.stubbedQueryBuilder = (QueryBuilder) Test.createStub(QueryBuilder.class, new QueryBuilderMockProvider(this));
+            this.stubbedConditionsManager = this.parent.conditionsManager.cloneConditionsManager(this.stubbedQueryBuilder);
+        }
+
+        //end stub and return to normal Query builder flow
+        public QueryBuilder applyStub() {
+            if (Test.isRunningTest()) {
+                this.parent = this.stubbedQueryBuilder;
+            }
+            return (QueryBuilder) this.parent;
+        }
+
+        //stub building methods
+        public StubbedQueryBuilder addStubToString(String queryString) {
+            this.queryString = queryString;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubToStringCount(String queryCountString) {
+            this.queryCountString = queryCountString;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubToCount(Integer countResult) {
+            this.countResult = countResult;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubToList(List<SObject> toListResult) {
+            this.toListResult = toListResult;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubToMap(Map<Id, SObject> toMapResult) {
+            this.toMapResult = toMapResult;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubToSObject(SObject toSobjectResult) {
+            this.toSobjectResult = toSobjectResult;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubToIdSet(Set<Id> toSetIdResult) {
+            this.toSetIdResult = toSetIdResult;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubExtractIds(Set<Id> extractedIdsResult) {
+            this.extractedIdsResult = extractedIdsResult;
+            return this;
+        }
+
+        public StubbedQueryBuilder addStubExtractField(List<Object> extractedFieldsResult) {
+            this.extractedFieldsResult = extractedFieldsResult;
+            return this;
+        }
+
+        //stub methods to call
+        private String stubToString() {
+            return this.queryString;
+        }
+
+        private String stubToStringCount() {
+            return this.queryCountString;
+        }
+
+        private Integer stubToCount() {
+            return this.countResult;
+        }
+
+        private List<SObject> stubToList() {
+            return this.toListResult;
+        }
+
+        private Map<Id, SObject> stubToMap() {
+            return this.toMapResult;
+        }
+
+        private Map<Id, SObject> stubToMap(Map<Id, SObject> mapToFill) {
+            mapToFill = this.toMapFillResult;
+            return this.toMapFillResult;
+        }
+
+        private SObject stubToSObject() {
+            return this.toSobjectResult;
+        }
+
+        private Set<Id> stubToIdSet() {
+            return this.toSetIdResult;
+        }
+
+        private Set<Id> stubExtractIds(String fieldName) {
+            return this.extractedIdsResult;
+        }
+
+        private List<Object> stubExtractField(String fieldName) {
+            return this.extractedFieldsResult;
+        }
+    }
+
+    //exceptions (reserved for later use)
     public class QueryBuilderException extends Exception {
     }
 }

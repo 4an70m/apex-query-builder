@@ -768,6 +768,30 @@ public with sharing class QueryBuilderTest {
         System.assertEquals(qb1.toList(), qb2.toList());
     }
 
+    @IsTest
+    public static void testStub1() {
+        final String EXPECTED_SOQL = 'SELECT Name FROM Account';
+
+        QueryBuilder stubbedQueryBuilder = new QueryBuilder(Account.class)
+                .buildStub()
+                .addStubToString(EXPECTED_SOQL)
+                .applyStub();
+
+        System.assertEquals(EXPECTED_SOQL, stubbedQueryBuilder.toString());
+    }
+
+    @IsTest
+    public static void testStub2() {
+        QueryBuilder stubbedQueryBuilder = new QueryBuilder(Account.class)
+                .buildStub()
+                .addStubToList(new List<Account>{new Account(Name='Stubbed-Account')})
+                .applyStub();
+
+        List<Account> accounts = (List<Account>) stubbedQueryBuilder.toList();
+        System.assertEquals(1, accounts.size());
+        System.assertEquals('Stubbed-Account', accounts[0].Name);
+    }
+
     private static Account createAccount (Integer i) {
         Account result = new Account();
         result.Name = 'Account-' + i;
