@@ -22,21 +22,23 @@
     SOFTWARE.
 */
 
-public with sharing class QueryBuilder {
+public virtual with sharing class QueryBuilder {
 
-    private final String fromSobject;
-    private final Set<String> fieldTokens;
-    private final Set<String> groupByFields;
+    private String fromSobject;
+    private Set<String> fieldTokens;
+    private Set<String> groupByFields;
     private List<Order> sortingOrder;
     private Integer queryLimit;
     private Integer queryOffset;
     private Integer countResult;
 
+    private StubbedQueryBuilder stubbedQueryBuilder;
+
     private ConditionsManager conditionsManager;
 
     private List<SObject> result;
 
-    private QueryBuilder() {
+    public QueryBuilder() {
         this.fieldTokens = new Set<String>();
         this.groupByFields = new Set<String>();
         this.sortingOrder = new List<Order>();
@@ -64,45 +66,63 @@ public with sharing class QueryBuilder {
     public QueryBuilder(SObject sobj) {
         this(sobj.getSObjectType());
     }
-
+    
     //from
-    public QueryBuilder subQuery(QueryBuilder queryBuilder) {
-        return this.field('(' + queryBuilder.toString() + ')');
+    public QueryBuilder addFrom(String fromSobject) {
+        this.fromSobject = fromSobject;
+        return this;
     }
 
-    public QueryBuilder subQuery(String subQueryString) {
-        return this.field('(' + subQueryString + ')');
+    public QueryBuilder addFrom(Type type) {
+        return this.addFrom(type.getName());
+    }
+
+    public QueryBuilder addFrom(SObjectType type) {
+        return this.addFrom(type.getDescribe().getName());
+    }
+
+    public QueryBuilder addFrom(SObject sobj) {
+        return this.addFrom(sobj.getSObjectType());
+    }
+
+    //subQuery
+    public QueryBuilder addSubQuery(QueryBuilder queryBuilder) {
+        return this.addField('(' + queryBuilder.toString() + ')');
+    }
+
+    public QueryBuilder addSubQuery(String subQueryString) {
+        return this.addField('(' + subQueryString + ')');
     }
 
     //fields
-    public QueryBuilder field(String fieldName) {
+    public QueryBuilder addField(String fieldName) {
         if (fieldName.contains(',')) {
-            return this.fields(fieldName);
+            return this.addFields(fieldName);
         }
         this.fieldTokens.add(fieldName.trim());
         return this;
     }
 
-    public QueryBuilder field(SObjectField field) {
-        return this.field(field.getDescribe().getName());
+    public QueryBuilder addField(SObjectField field) {
+        return this.addField(field.getDescribe().getName());
     }
 
-    public QueryBuilder fields(SObject sobj) {
-        return this.fields(sobj.getPopulatedFieldsAsMap().keySet());
+    public QueryBuilder addFields(SObject sobj) {
+        return this.addFields(sobj.getPopulatedFieldsAsMap().keySet());
     }
 
-    public QueryBuilder fields(String fieldNames) {
-        return this.fields(fieldNames.trim().split(','));
+    public QueryBuilder addFields(String fieldNames) {
+        return this.addFields(fieldNames.trim().split(','));
     }
 
-    public QueryBuilder fields(List<String> fieldNames) {
+    public QueryBuilder addFields(List<String> fieldNames) {
         for (String fieldName : fieldNames) {
             this.fieldTokens.add(fieldName.trim());
         }
         return this;
     }
 
-    public QueryBuilder fields(Set<String> fieldNames) {
+    public QueryBuilder addFields(Set<String> fieldNames) {
         for (String fieldName : fieldNames) {
             this.fieldTokens.add(fieldName.trim());
         }
@@ -110,25 +130,25 @@ public with sharing class QueryBuilder {
     }
 
     //all fields
-    public QueryBuilder fieldsAll() {
-        return this.fieldsAll(this.fromSobject);
+    public QueryBuilder addFieldsAll() {
+        return this.addFieldsAll(this.fromSobject);
     }
 
-    public QueryBuilder fieldsAll(String sobjectName) {
+    public QueryBuilder addFieldsAll(String sobjectName) {
         Set<String> fieldNames = Schema.getGlobalDescribe().get(sobjectName).getDescribe().fields.getMap().keySet();
         this.fieldTokens.addAll(fieldNames);
         return this;
     }
 
-    public QueryBuilder fieldsAll(Type sobjectType) {
-        return this.fieldsAll(sobjectType.toString());
+    public QueryBuilder addFieldsAll(Type sobjectType) {
+        return this.addFieldsAll(sobjectType.toString());
     }
 
-    public QueryBuilder fieldsAllCreatable() {
-        return this.fieldsAllCreatable(this.fromSobject);
+    public QueryBuilder addFieldsAllCreatable() {
+        return this.addFieldsAllCreatable(this.fromSobject);
     }
 
-    public QueryBuilder fieldsAllCreatable(String sobjectName) {
+    public QueryBuilder addFieldsAllCreatable(String sobjectName) {
         Schema.SObjectType objectType = Schema.getGlobalDescribe().get(sobjectName);
         Map<String, Schema.SObjectField> fieldMap = objectType.getDescribe().fields.getMap();
 
@@ -144,15 +164,15 @@ public with sharing class QueryBuilder {
         return this;
     }
 
-    public QueryBuilder fieldsAllCreatable(Type sobjectType) {
-        return this.fieldsAllCreatable(sobjectType.toString());
+    public QueryBuilder addFieldsAllCreatable(Type sobjectType) {
+        return this.addFieldsAllCreatable(sobjectType.toString());
     }
 
-    public QueryBuilder fieldsAllUpdatable() {
-        return this.fieldsAllUpdatable(this.fromSobject);
+    public QueryBuilder addFieldsAllUpdatable() {
+        return this.addFieldsAllUpdatable(this.fromSobject);
     }
 
-    public QueryBuilder fieldsAllUpdatable(String sobjectName) {
+    public QueryBuilder addFieldsAllUpdatable(String sobjectName) {
         Schema.SObjectType objectType = Schema.getGlobalDescribe().get(sobjectName);
         Map<String, Schema.SObjectField> fieldMap = objectType.getDescribe().fields.getMap();
 
@@ -168,12 +188,12 @@ public with sharing class QueryBuilder {
         return this;
     }
 
-    public QueryBuilder fieldsAllUpdatable(Type sobjectType) {
-        return this.fieldsAllUpdatable(sobjectType.toString());
+    public QueryBuilder addFieldsAllUpdatable(Type sobjectType) {
+        return this.addFieldsAllUpdatable(sobjectType.toString());
     }
 
     //field sets
-    public QueryBuilder fieldSet(String objectName, String fieldSetName) {
+    public QueryBuilder addFieldSet(String objectName, String fieldSetName) {
         Set<String> result = new Set<String>();
         Map<String, Schema.SObjectType> globalDescribeMap = Schema.getGlobalDescribe();
         Schema.SObjectType sObjectTypeObj = GlobalDescribeMap.get(objectName);
@@ -185,7 +205,7 @@ public with sharing class QueryBuilder {
         return this;
     }
 
-    public QueryBuilder fieldSet(FieldSet fieldSet) {
+    public QueryBuilder addFieldSet(FieldSet fieldSet) {
         Set<String> fieldNames = new Set<String>();
         for (FieldSetMember fieldSetMember : fieldSet.getFields()) {
             fieldNames.add(fieldSetMember.getFieldPath());
@@ -194,16 +214,16 @@ public with sharing class QueryBuilder {
         return this;
     }
 
-    public QueryBuilder fieldSet(String fieldSetName) {
-        return this.fieldSet(this.fromSobject, fieldSetName);
+    public QueryBuilder addFieldSet(String fieldSetName) {
+        return this.addFieldSet(this.fromSobject, fieldSetName);
     }
 
     //conditions
-    public ConditionsManager conditions() {
+    public ConditionsManager addConditions() {
         return this.conditionsManager;
     }
 
-    public ConditionsManager conditions(String conditionOrder) {
+    public ConditionsManager addConditionsWithOrder(String conditionOrder) {
         return this.conditionsManager.setConditionOrder(conditionOrder);
     }
 
@@ -276,6 +296,17 @@ public with sharing class QueryBuilder {
                 + 'Query will return exactly: ' + this.countResult + ' record(s).'
                 + '\n\n=======================================\n';
         System.debug(logRecord);
+        return this;
+    }
+
+    public QueryBuilder newQuery() {
+        this.fieldTokens = new Set<String>();
+        this.groupByFields = new Set<String>();
+        this.sortingOrder = new List<Order>();
+        this.conditionsManager = new ConditionsManager(this);
+        this.queryLimit = 0;
+        this.queryOffset = 0;
+        this.countResult = null;
         return this;
     }
 
@@ -392,14 +423,14 @@ public with sharing class QueryBuilder {
 
     public QueryBuilder cloneQueryBuilder(Boolean includeResult) {
         QueryBuilder result = new QueryBuilder(this.fromSobject);
-        result.fields(this.fieldTokens);
-        result.groupBy(this.groupByFields);
+        result.addFields(this.fieldTokens);
+        result.addGroupBy(this.groupByFields);
         result.conditionsManager = this.conditionsManager.cloneConditionsManager(result);
         result.setLimit(this.queryLimit);
         if (includeResult && this.result != null && !this.result.isEmpty()) {
             result.result = new List<SObject>(this.result);
         }
-        result.sortingOrder = new List<Order>(this.sortingOrder);
+        result.sortingOrder.addAll(this.sortingOrder);
         return result;
     }
 
