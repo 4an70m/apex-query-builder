@@ -14,19 +14,19 @@ Example of a complex query builder
 List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
 
         //fields
-        .field(Account.Name)
-        .field('ParentId')
-        .fields('Id, NumberOfEmployees')
-        .fields(new List<String>{'Name'})
-        .fields(new Set<String>{'Name'})
-        .fieldSet('name_of_the_field_set')
-        .fieldsAll()
+        .addField(Account.Name)
+        .addField('ParentId')
+        .addFields('Id, NumberOfEmployees')
+        .addFields(new List<String>{'Name'})
+        .addFields(new Set<String>{'Name'})
+        .addFieldSet('name_of_the_field_set')
+        .addFieldsAll()
 
         //subquery
-        .subQuery(new QueryBuilder('Contacts').fieldsAll(Contact.class))
+        .addSubQuery(new QueryBuilder('Contacts').fieldsAll(Contact.class))
 
         //conditions
-        .conditions()
+        .addConditions()
         .add(new QueryBuilder.SimpleCondition('Name = \'Account-1\''))
         .add(new QueryBuilder.NullCondition(Account.Name).notNull())
         .add(new QueryBuilder.CompareCondition(Account.Name).eq('Account-1'))
@@ -39,7 +39,26 @@ List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
         .endConditions()
         .setLimit(10)
         .setOffset(1)
-        .orderAsc('Id')
+        .addOrderAsc('Id')
         .preview()
         .toList();
 ```
+
+Example of mock query builder in test
+```Apex
+@IsTest
+public static void testStub1() {
+        final String EXPECTED_SOQL = 'SELECT Name FROM Account';
+
+        QueryBuilder stubbedQueryBuilder = new QueryBuilder(Account.class)
+                .buildStub()
+                .addStubToString(EXPECTED_SOQL)
+                .addStubToList(new List<Account>{new Account(Name='Stubbed-Account')})
+                .applyStub();
+
+        System.assertEquals(EXPECTED_SOQL, stubbedQueryBuilder.toString());
+        System.assertEquals(1, stubbedQueryBuilder.toList().size());
+        System.assertEquals('Stubbed-Account', stubbedQueryBuilder.toList()[0].Name);
+}
+```
+
