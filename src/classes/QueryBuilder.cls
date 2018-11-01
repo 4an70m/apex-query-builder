@@ -37,6 +37,8 @@ public virtual with sharing class QueryBuilder {
     private ConditionsManager conditionsManager;
 
     private List<SObject> result;
+    private Boolean checkCrud;
+    private Boolean checkFls;
 
     public QueryBuilder() {
         this.fieldTokens = new Set<String>();
@@ -46,6 +48,8 @@ public virtual with sharing class QueryBuilder {
         this.queryLimit = 0;
         this.queryOffset = 0;
         this.countResult = null;
+        this.checkCrud = false;
+        this.checkFls = false;
     }
 
     public QueryBuilder(String fromSobject) {
@@ -279,6 +283,34 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    //crud and fls check builder
+    public QueryBuilder setCheckCRUDAndFLS(Boolean checkCrudAndFls) {
+        this.setCheckCRUD(checkCrudAndFls);
+        return this.setCheckFLS(checkCrudAndFls);
+    }
+
+    public QueryBuilder setCheckCRUDAndFLS() {
+        return this.setCheckCRUDAndFLS(true);
+    }
+
+    public QueryBuilder setCheckCRUD(Boolean checkCrud) {
+        this.checkCrud = checkCrud;
+        return this;
+    }
+
+    public QueryBuilder setCheckCRUD() {
+        return this.setCheckCRUD(true);
+    }
+
+    public QueryBuilder setCheckFLS(Boolean checkFls) {
+        this.checkFls = checkFls;
+        return this;
+    }
+
+    public QueryBuilder setCheckFLS() {
+        return this.setCheckFLS(true);
+    }
+
     //stub method
     public StubbedQueryBuilder buildStub() {
         this.stubbedQueryBuilder = new StubbedQueryBuilder(this);
@@ -313,10 +345,12 @@ public virtual with sharing class QueryBuilder {
         this.queryLimit = 0;
         this.queryOffset = 0;
         this.countResult = null;
+        this.checkCrud = false;
+        this.checkFls = false;
         return this;
     }
 
-    public QueryBuilder resetQuery() {
+    public QueryBuilder resetResult() {
         this.result = null;
         return this;
     }
@@ -373,7 +407,18 @@ public virtual with sharing class QueryBuilder {
 
     public List<SObject> toList() {
         if (this.result == null) {
-            this.result = Database.query(this.toString());
+            List<SObject> result = Database.query(this.toString());
+            SObjectReadValidator sObjectReadValidator;
+            if (this.checkCrud || this.checkFls) {
+                sObjectReadValidator = new SObjectReadValidator(result);
+                if (this.checkCrud) {
+                    sObjectReadValidator.checkObjectAccess();
+                }
+                if (this.checkFls) {
+                    sObjectReadValidator.checkFieldsAccess();
+                }
+            }
+            this.result = result;
         }
         return this.result;
     }
@@ -1037,7 +1082,7 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
-    public class StubbedQueryBuilder extends QueryBuilder{
+    public class StubbedQueryBuilder extends QueryBuilder {
 
         private QueryBuilder parent;
         private String queryString;
@@ -1156,6 +1201,69 @@ public virtual with sharing class QueryBuilder {
             return this.extractedFieldsResult;
         }
     }
+
+    //crud and fls checker
+    public class SObjectReadValidator {
+
+        private List<SObject> sObjectsToValidate;
+        private SObjectType sObjectType;
+        private DescribeSObjectResult describedSObjectType;
+
+        public SObjectReadValidator(List<SObject> sObjectsToValidate) {
+            this.sObjectsToValidate = sObjectsToValidate;
+            this.sObjectType = sObjectsToValidate.getSObjectType();
+            this.describedSObjectType = this.sObjectType.getDescribe();
+        }
+
+        public void validate() {
+            this.checkObjectAccess();
+            this.checkFieldsAccess();
+        }
+
+        public void checkObjectAccess() {
+            if (!this.describedSObjectType.isAccessible() || !this.describedSObjectType.isQueryable()) {
+                throw new System.NoAccessException();
+            }
+        }
+
+        public void checkFieldsAccess() {
+            Map<String, SObjectField> sobjectFields = this.describedSObjectType.fields.getMap();
+            Map<String, ChildRelationship> childRelationshipsByName = this.getChildRelationshipsByName(describedSObjectType);
+            for (SObject sobj : this.sObjectsToValidate) {
+                this.validateSobject(sobj, sobjectFields, childRelationshipsByName);
+            }
+        }
+
+        private void validateSobject(SObject sobj, Map<String, SObjectField> sobjectFields, Map<String, ChildRelationship> childRelationshipsByName) {
+            Map<String, Object> sobjectPopulatedFields = sobj.getPopulatedFieldsAsMap();
+            for (String fieldName : sobjectPopulatedFields.keySet()) {
+                SObjectField sobjectField = sobjectFields.get(fieldName);
+                if (sobjectField == null) {
+                    ChildRelationship childRelationship = childRelationshipsByName.get(fieldName);
+                    if (childRelationship == null) {
+                        System.debug('FLS Validator: No child relationship: ' + fieldName);
+                        continue;
+                    }
+                    new SObjectReadValidator(sobj.getSObjects(fieldName)).validate();
+                    continue;
+                } else if (!sobjectField.getDescribe().isAccessible()) {
+                    System.debug('FLS Validator: Not accessible field: ' + fieldName);
+                    sobj.put(sobjectField, null);
+                    continue;
+                }
+            }
+        }
+
+        private Map<String, ChildRelationship> getChildRelationshipsByName(DescribeSObjectResult describedSObjectType) {
+            Map<String, ChildRelationship> result = new Map<String, ChildRelationship>();
+            List<ChildRelationship> childRelationships = describedSObjectType.getChildRelationships();
+            for (ChildRelationship childRelationship : childRelationships) {
+                result.put(childRelationship.getRelationshipName(), childRelationship);
+            }
+            return result;
+        }
+    }
+
 
     //exceptions (reserved for later use)
     public class QueryBuilderException extends Exception {

@@ -120,7 +120,7 @@ public with sharing class QueryBuilderTest {
     @IsTest
     public static void testFields1() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
-                .addFields(new Account(Name='test'))
+                .addFields(new Account(Name = 'test'))
                 .toList();
         System.assertEquals(1, accounts.size());
         System.assertNotEquals(null, accounts[0].Name);
@@ -156,7 +156,9 @@ public with sharing class QueryBuilderTest {
     @IsTest
     public static void testFields31() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
-                .addFields(new List<String>{'Name'})
+                .addFields(new List<String>{
+                        'Name'
+                })
                 .toList();
         System.assertEquals(1, accounts.size());
         System.assertNotEquals(null, accounts[0].Name);
@@ -165,7 +167,9 @@ public with sharing class QueryBuilderTest {
     @IsTest
     public static void testFields32() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
-                .addFields(new List<String>{'Id', 'Name'})
+                .addFields(new List<String>{
+                        'Id', 'Name'
+                })
                 .toList();
         System.assertEquals(1, accounts.size());
         System.assertNotEquals(null, accounts[0].Name);
@@ -174,7 +178,9 @@ public with sharing class QueryBuilderTest {
     @IsTest
     public static void testFields33() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
-                .addFields(new List<String>{'Name', 'Name'})
+                .addFields(new List<String>{
+                        'Name', 'Name'
+                })
                 .toList();
         System.assertEquals(1, accounts.size());
         System.assertNotEquals(null, accounts[0].Name);
@@ -183,7 +189,9 @@ public with sharing class QueryBuilderTest {
     @IsTest
     public static void testFields4() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
-                .addFields(new Set<String>{'Name'})
+                .addFields(new Set<String>{
+                        'Name'
+                })
                 .toList();
         System.assertEquals(1, accounts.size());
         System.assertNotEquals(null, accounts[0].Name);
@@ -433,7 +441,9 @@ public with sharing class QueryBuilderTest {
     public static void testInCondition1() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
                 .addConditions()
-                .add(new QueryBuilder.InCondition('Name').inCollection(new List<String> {'Account-1'}))
+                .add(new QueryBuilder.InCondition('Name').inCollection(new List<String>{
+                        'Account-1'
+                }))
                 .endConditions()
                 .toList();
         System.assertEquals(1, accounts.size());
@@ -443,7 +453,9 @@ public with sharing class QueryBuilderTest {
     public static void testInCondition12() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
                 .addConditions()
-                .add(new QueryBuilder.InCondition(Account.Name).inCollection(new List<String> {'Account-1'}))
+                .add(new QueryBuilder.InCondition(Account.Name).inCollection(new List<String>{
+                        'Account-1'
+                }))
                 .endConditions()
                 .toList();
         System.assertEquals(1, accounts.size());
@@ -453,7 +465,9 @@ public with sharing class QueryBuilderTest {
     public static void testInCondition2() {
         List<Account> accounts = (List<Account>) new QueryBuilder(Account.class)
                 .addConditions()
-                .add(new QueryBuilder.InCondition('Name').inCollection(new Set<String> {'Account-1'}))
+                .add(new QueryBuilder.InCondition('Name').inCollection(new Set<String>{
+                        'Account-1'
+                }))
                 .endConditions()
                 .toList();
         System.assertEquals(1, accounts.size());
@@ -684,11 +698,11 @@ public with sharing class QueryBuilderTest {
         System.assertEquals(1, accounts.size());
 
         createAccount(2);
-        accounts = (List<Account>)accountQueryBuilder.toList();
+        accounts = (List<Account>) accountQueryBuilder.toList();
         System.assertEquals(1, accounts.size());
 
-        accountQueryBuilder.resetQuery();
-        accounts = (List<Account>)accountQueryBuilder.toList();
+        accountQueryBuilder.resetResult();
+        accounts = (List<Account>) accountQueryBuilder.toList();
         System.assertEquals(2, accounts.size());
     }
 
@@ -752,7 +766,7 @@ public with sharing class QueryBuilderTest {
         QueryBuilder qb2 = qb1.cloneQueryBuilder();
         qb2.addField('Name');
 
-        qb1.resetQuery();
+        qb1.resetResult();
         System.assertEquals('SELECT Id FROM Account', qb1.toString());
         System.assertEquals('SELECT Name FROM Account', qb2.toString());
     }
@@ -784,7 +798,9 @@ public with sharing class QueryBuilderTest {
     public static void testStub2() {
         QueryBuilder stubbedQueryBuilder = new QueryBuilder(Account.class)
                 .buildStub()
-                .addStubToList(new List<Account>{new Account(Name='Stubbed-Account')})
+                .addStubToList(new List<Account>{
+                        new Account(Name = 'Stubbed-Account')
+                })
                 .applyStub();
 
         List<Account> accounts = (List<Account>) stubbedQueryBuilder.toList();
@@ -792,7 +808,8 @@ public with sharing class QueryBuilderTest {
         System.assertEquals('Stubbed-Account', accounts[0].Name);
     }
 
-    private static Account createAccount (Integer i) {
+    //Utility methods
+    private static Account createAccount(Integer i) {
         Account result = new Account();
         result.Name = 'Account-' + i;
         result.NumberOfEmployees = 0;
@@ -800,11 +817,12 @@ public with sharing class QueryBuilderTest {
         return result;
     }
 
-    private static Contact createContact (Id accId) {
+    private static Contact createContact(Id accId) {
         Contact result = new Contact();
         result.LastName = 'Contact-' + accId;
         result.AccountId = accId;
         result.Email = 'email' + accId + '@example.com';
+        result.Description = accId;
         insert result;
         return result;
     }
