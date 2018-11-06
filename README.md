@@ -132,7 +132,7 @@ There are situations, when you want to retrieve data from the Salesforce databas
         .endConditions();
 ```
 
-#### Null Condition
+#### Like Condition
 ```Apex
     new QueryBuilder(Account.class)
         .addConditionsWithOrder('1')
@@ -150,7 +150,7 @@ There are situations, when you want to retrieve data from the Salesforce databas
         .endConditions();
 ```
 
-#### Null Condition
+#### Record Type Condition
 ```Apex
     new QueryBuilder(Account.class)
         .addConditions()
