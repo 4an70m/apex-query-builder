@@ -2,7 +2,7 @@
 Apex class which allows you to perform dynamic queries more elegant, then concatenating string into a SOQL request.
 
 ## Use-cases
-There are situations, when you want to retrieve data from the Salesforce database, but you don't know what fields or what conditions you will need at the compilation time and you will now at the runtime. To handle this situations Salesforce provides a way to create dynamic SOQL from String, but generally this type of queries are quite complicated and String query building becomes an awkward process of building long, hardcoded query.
+There are situations, when you want to retrieve data from the Salesforce database, but you don't know what fields or what conditions you will need at the compilation time and you will know at the runtime. To handle this situations Salesforce provides a way to create dynamic SOQL from String, but generally this type of queries are quite complicated and String query building becomes an awkward process of building long, hardcoded query.
 
 ## References
  - [Select sObject](#Selecting-sObject)
