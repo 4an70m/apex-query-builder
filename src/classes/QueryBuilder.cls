@@ -22,6 +22,12 @@
     SOFTWARE.
 */
 
+/**
+ * Basic class and a namespace for all query building methods.
+ *
+ * @author github.com/4an70m
+ * @version 1.0
+ */
 public virtual with sharing class QueryBuilder {
 
     private String fromSobject;
@@ -40,6 +46,13 @@ public virtual with sharing class QueryBuilder {
     private Boolean checkCrud;
     private Boolean checkFls;
 
+    /**
+     * Constructs an empty QueryBuilder instance.
+     * Requires a call to addFrom() method for selecting
+     * an sobject to build query for.
+     *
+     * @see QueryBuilder.addFrom
+     */
     public QueryBuilder() {
         this.fieldTokens = new Set<String>();
         this.groupByFields = new Set<String>();
@@ -52,53 +65,234 @@ public virtual with sharing class QueryBuilder {
         this.checkFls = false;
     }
 
+    /**
+     * Constructs a QueryBuilder instance for
+     * given SObject name in a string form.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder('Account');
+     * </code>
+     * </pre>
+     *
+     * @param fromSobject
+     */
     public QueryBuilder(String fromSobject) {
         this();
         this.fromSobject = fromSobject.trim();
     }
 
+    /**
+     * Constructs a QueryBuilder instance for
+     * given SObject name in an SObjectType form.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.getSObjectType());
+     * </code>
+     * </pre>
+     *
+     * @param type
+     */
     public QueryBuilder(SObjectType type) {
         this();
         this.fromSobject = type.getDescribe().getName();
     }
 
+    /**
+     * Constructs a QueryBuilder instance for
+     * given SObject name in an System.Type form.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class);
+     * </code>
+     * </pre>
+     *
+     * @param type
+     */
     public QueryBuilder(Type type) {
         this();
         this.fromSobject = type.getName();
     }
 
+    /**
+     * Constructs a QueryBuilder instance for
+     * given SObject name in an SObject form.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(new Account());
+     * </code>
+     * </pre>
+     *
+     * @param sobj
+     */
     public QueryBuilder(SObject sobj) {
         this(sobj.getSObjectType());
     }
-    
-    //from
+
+    /**
+     * Sets the FROM statement in the query.
+     * Always overrides the constructor-selected FROM value.
+     * <br/>
+     * The name of the SObject is accepted as a string.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFrom('Account');
+     * </code>
+     * </pre>
+     *
+     * @param fromSobject
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFrom(String fromSobject) {
         this.fromSobject = fromSobject;
         return this;
     }
 
-    public QueryBuilder addFrom(Type type) {
-        return this.addFrom(type.getName());
-    }
-
+    /**
+     * Sets the FROM statement in the query.
+     * Always overrides the constructor-selected FROM value.
+     * <br/>
+     * The name of the SObject is accepted as an SObjectType.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFrom(Account.getSObjectType());
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFrom(SObjectType type) {
         return this.addFrom(type.getDescribe().getName());
     }
 
+    /**
+     * Sets the FROM statement in the query.
+     * Always overrides the constructor-selected FROM value.
+     * <br/>
+     * The name of the SObject is accepted as a System.Type.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFrom(Account.class);
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFrom(Type type) {
+        return this.addFrom(type.getName());
+    }
+
+    /**
+     * Sets the FROM statement in the query.
+     * Always overrides the constructor-selected FROM value.
+     * <br/>
+     * The name of the SObject is accepted as an SObject.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFrom(new Account());
+     * </code>
+     * </pre>
+     *
+     * @param sobj
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFrom(SObject sobj) {
         return this.addFrom(sobj.getSObjectType());
     }
 
-    //subQuery
+    /**
+     * Constructs a sub-query for given query.
+     * The sub-query is build based on a nested QueryBuilder instance.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addSubQuery(new QueryBuilder('Contacts'));
+     * </code>
+     * </pre>
+     *
+     * @param queryBuilder
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addSubQuery(QueryBuilder queryBuilder) {
         return this.addField('(' + queryBuilder.toString() + ')');
     }
 
+    /**
+     * Constructs a sub-query for given query.
+     * The sub-query is a plain string value.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addSubQuery('SELECT Id FROM Contacts');
+     * </code>
+     * </pre>
+     *
+     * @param subQueryString
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addSubQuery(String subQueryString) {
         return this.addField('(' + subQueryString + ')');
     }
 
-    //fields
+    /**
+     * Adds a field or number of comma-separated fields
+     * into the query selection Set.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addField('Id')
+     *     .addField('Name, ParentId');
+     * </code>
+     * </pre>
+     *
+     * @param fieldName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addField(String fieldName) {
         if (fieldName.contains(',')) {
             return this.addFields(fieldName);
@@ -107,18 +301,87 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * Adds a field in a form of SObjectField
+     * into the query selection Set.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addField(Account.Name);
+     * </code>
+     * </pre>
+     *
+     * @param fieldName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addField(SObjectField field) {
         return this.addField(field.getDescribe().getName());
     }
 
+    /**
+     * Adds a field or number of populated fields,
+     * extracted from sobject instance into the query selection Set.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addField(new Account(Name = 'Test'));
+     * //results: SELECT Name FROM Account
+     * </code>
+     * </pre>
+     *
+     * @param fieldName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFields(SObject sobj) {
         return this.addFields(sobj.getPopulatedFieldsAsMap().keySet());
     }
 
+    /**
+     * Adds a field or number of comma-separated fields
+     * into the query selection Set.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addFields('Id')
+     *     .addFields('Name, ParentId');
+     * </code>
+     * </pre>
+     *
+     * @param fieldName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFields(String fieldNames) {
         return this.addFields(fieldNames.trim().split(','));
     }
 
+    /**
+     * Adds a list of fields into the query selection Set.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addFields(new List<String> {'Name'});
+     * </code>
+     * </pre>
+     *
+     * @param fieldNames
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFields(List<String> fieldNames) {
         for (String fieldName : fieldNames) {
             this.fieldTokens.add(fieldName.trim());
@@ -126,6 +389,22 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * Adds a set of fields into the query selection Set.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addFields(new Set<String> {'Name'});
+     * </code>
+     * </pre>
+     *
+     * @param fieldNames
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFields(Set<String> fieldNames) {
         for (String fieldName : fieldNames) {
             this.fieldTokens.add(fieldName.trim());
@@ -133,25 +412,142 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
-    //all fields
+    /**
+     * Adds all fields of the sobject, specified in FROM statement.
+     * The FROM sobject must be specified before calling to this method.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addFieldsAll();
+     * </code>
+     * </pre>
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldsAll() {
         return this.addFieldsAll(this.fromSobject);
     }
 
+    /**
+     * Adds all fields of the sobject, specified in param as a string name.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAll('Account');
+     * </code>
+     * </pre>
+     *
+     * @param sobjectName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldsAll(String sobjectName) {
         Set<String> fieldNames = Schema.getGlobalDescribe().get(sobjectName).getDescribe().fields.getMap().keySet();
         this.fieldTokens.addAll(fieldNames);
         return this;
     }
 
-    public QueryBuilder addFieldsAll(Type sobjectType) {
-        return this.addFieldsAll(sobjectType.toString());
+    /**
+     * Adds all fields of the sobject, specified in param as System.Type.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAll(Account.class);
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAll(Type type) {
+        return this.addFieldsAll(type.toString());
     }
 
+    /**
+     * Adds all fields of the sobject, specified in param as an SObjectType.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAll(Account.getSObjectType());
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAll(SObjectType type) {
+        return this.addFieldsAll(type.getDescribe().getName());
+    }
+
+    /**
+     * Adds all fields of the sobject, specified in param as an SObject.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAll(new Account());
+     * </code>
+     * </pre>
+     *
+     * @param sobj
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAll(SObject sobj) {
+        return this.addFieldsAll(sobj.getSObjectType());
+    }
+
+    /**
+     * Adds all creatable fields of the sobject, specified in FROM statement.
+     * The FROM sobject must be specified before calling to this method.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllCreatable();
+     * </code>
+     * </pre>
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldsAllCreatable() {
         return this.addFieldsAllCreatable(this.fromSobject);
     }
 
+    /**
+     * Adds all creatable fields of the sobject, specified in param as a string name.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllCreatable('Account');
+     * </code>
+     * </pre>
+     *
+     * @param sobjectName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldsAllCreatable(String sobjectName) {
         Schema.SObjectType objectType = Schema.getGlobalDescribe().get(sobjectName);
         Map<String, Schema.SObjectField> fieldMap = objectType.getDescribe().fields.getMap();
@@ -168,14 +564,103 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
-    public QueryBuilder addFieldsAllCreatable(Type sobjectType) {
-        return this.addFieldsAllCreatable(sobjectType.toString());
+    /**
+     * Adds all creatable fields of the sobject, specified in param as System.Type.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllCreatable(Account.class);
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAllCreatable(Type type) {
+        return this.addFieldsAllCreatable(type.toString());
     }
 
+    /**
+     * Adds all creatable fields of the sobject, specified in param as an SObjectType.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAll(Account.getSObjectType());
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAllCreatable(SObjectType type) {
+        return this.addFieldsAllCreatable(type.getDescribe().getName());
+    }
+
+    /**
+     * Adds all creatable fields of the sobject, specified in param as an SObject.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAll(new Account());
+     * </code>
+     * </pre>
+     *
+     * @param sobj
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAllCreatable(SObject sobj) {
+        return this.addFieldsAllCreatable(sobj.getSObjectType());
+    }
+
+    /**
+     * Adds all updatable fields of the sobject, specified in FROM statement.
+     * The FROM sobject must be specified before calling to this method.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllUpdatable();
+     * </code>
+     * </pre>
+     *
+     * @param sobjectName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldsAllUpdatable() {
         return this.addFieldsAllUpdatable(this.fromSobject);
     }
 
+    /**
+     * Adds all updatable fields of the sobject, specified in param as string name.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllUpdatable('Account');
+     * </code>
+     * </pre>
+     *
+     * @param sobjectName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldsAllUpdatable(String sobjectName) {
         Schema.SObjectType objectType = Schema.getGlobalDescribe().get(sobjectName);
         Map<String, Schema.SObjectField> fieldMap = objectType.getDescribe().fields.getMap();
@@ -192,11 +677,83 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
-    public QueryBuilder addFieldsAllUpdatable(Type sobjectType) {
-        return this.addFieldsAllUpdatable(sobjectType.toString());
+    /**
+     * Adds all updatable fields of the sobject, specified in param as System.Type.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllUpdatable(Account.class);
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAllUpdatable(Type type) {
+        return this.addFieldsAllUpdatable(type.getName());
     }
 
-    //field sets
+    /**
+     * Adds all updatable fields of the sobject, specified in param as an SObjectType.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllUpdatable(Account.getSObjectType());
+     * </code>
+     * </pre>
+     *
+     * @param type
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAllUpdatable(SObjectType type) {
+        return this.addFieldsAllUpdatable(type.getDescribe().getName());
+    }
+
+    /**
+     * Adds all updatable fields of the sobject, specified in param as an SObject.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addFieldsAllUpdatable(new Account());
+     * </code>
+     * </pre>
+     *
+     * @param sobj
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addFieldsAllUpdatable(SObject sobj) {
+        return this.addFieldsAllUpdatable(sobj.getSObjectType());
+    }
+
+    /**
+     * Adds all fields from a FieldSet for specific object.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addFieldSet('Account', 'My_Field_Set');
+     * </code>
+     * </pre>
+     *
+     * @param objectName
+     * @param fieldSetName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldSet(String objectName, String fieldSetName) {
         Set<String> result = new Set<String>();
         Map<String, Schema.SObjectType> globalDescribeMap = Schema.getGlobalDescribe();
@@ -209,6 +766,23 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * Adds all fields from a specific FieldSet.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * FieldSet myFieldSet = //retrieve a field set
+     * new QueryBuilder(Account.class)
+     *     .addFieldSet(myFieldSet);
+     * </code>
+     * </pre>
+     *
+     * @param fieldSet
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldSet(FieldSet fieldSet) {
         Set<String> fieldNames = new Set<String>();
         for (FieldSetMember fieldSetMember : fieldSet.getFields()) {
@@ -218,106 +792,362 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * Adds all fields from a specific FieldSet by its name.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addFieldSet('My_Field_Set');
+     * </code>
+     * </pre>
+     *
+     * @param fieldSetName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addFieldSet(String fieldSetName) {
         return this.addFieldSet(this.fromSobject, fieldSetName);
     }
 
-    //conditions
+    /**
+     * Returns an instance of ConditionsManage for current QueryBuilder instance.
+     * Allows creation of conditions for a query.
+     * <p>To finish work with conditions and return to work with QueryBuilder instance
+     * it is required to call the endConditions() method of ConditionsManager</p>
+     *
+     * @return an instance of ConditionsManager.class
+     *
+     * @see QueryBuilder.ConditionsManager
+     */
     public ConditionsManager addConditions() {
         return this.conditionsManager;
     }
 
+    /**
+     * Returns an instance of ConditionsManage for current QueryBuilder instance.
+     * Allows creation of conditions for a query.
+     * <p>As a parameter accepts a string with order of conditions execution and there relations</p>
+     * <p>To finish work with conditions and return to work with QueryBuilder instance
+     * it is required to call the endConditions() method of ConditionsManager</p>
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder()
+     *     .addConditionsWithOrder('1 and (2 or 3) and 4')
+     *     .endConditions();
+     * </code>
+     * </pre>
+     *
+     * @param conditionOrder
+     *
+     * @return an instance of ConditionsManager.class
+     *
+     * @see QueryBuilder.ConditionsManager
+     */
     public ConditionsManager addConditionsWithOrder(String conditionOrder) {
         return this.conditionsManager.setConditionOrder(conditionOrder);
     }
 
-    //limits
+    /**
+     * Sets a limit for current query. Accepts an integer.
+     *
+     * @param queryLimit
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setLimit(Integer queryLimit) {
         this.queryLimit = queryLimit;
         return this;
     }
 
-    //offset
+    /**
+     * Sets an offset for current query. Accepts an integer.
+     *
+     * @param queryOffset
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setOffset(Integer queryOffset) {
         this.queryOffset = queryOffset;
         return this;
     }
 
-    //orders
-    public QueryBuilder addOrderAsc(String field) {
-        this.sortingOrder.add(new AscOrder(field));
+    /**
+     * Adds a SORT BY {field} ASC statement to the query.
+     * Field name is specified as a string.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addOrderAsc('Account');
+     * </code>
+     * </pre>
+     *
+     * @param fieldName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addOrderAsc(String fieldName) {
+        this.sortingOrder.add(new AscOrder(fieldName));
         return this;
     }
 
-    public QueryBuilder addOrderAsc(SObjectField sObjectField) {
-        this.sortingOrder.add(new AscOrder(sObjectField.getDescribe().getName()));
+    /**
+     * Adds a SORT BY {field} ASC statement to the query.
+     * Field is specified as an SObjectField.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addOrderAsc(Account.Name);
+     * </code>
+     * </pre>
+     *
+     * @param field
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addOrderAsc(SObjectField field) {
+        this.sortingOrder.add(new AscOrder(field.getDescribe().getName()));
         return this;
     }
 
-    public QueryBuilder addOrderDesc(String field) {
-        this.sortingOrder.add(new DescOrder(field));
+    /**
+     * Adds a SORT BY {field} DESC statement to the query.
+     * Field name is specified as a string.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addOrderDesc('Account');
+     * </code>
+     * </pre>
+     *
+     * @param fieldName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addOrderDesc(String fieldName) {
+        this.sortingOrder.add(new DescOrder(fieldName));
         return this;
     }
 
-    public QueryBuilder addOrderDesc(SObjectField sObjectField) {
-        this.sortingOrder.add(new DescOrder(sObjectField.getDescribe().getName()));
+    /**
+     * Adds a SORT BY {field} DESC statement to the query.
+     * Field is specified as an SObjectField.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addOrderDesc(Account.Name);
+     * </code>
+     * </pre>
+     *
+     * @param field
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addOrderDesc(SObjectField field) {
+        this.sortingOrder.add(new DescOrder(field.getDescribe().getName()));
         return this;
     }
 
-    //group by
-    public QueryBuilder addGroupBy(SObjectField field) {
-        return this.addGroupBy(field.getDescribe().getName());
-    }
-
+    /**
+     * Adds a field or number of comma-separated fields to the
+     * group by Set of fields.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .groupBy('Name')
+     *     .groupBy('Id, ParentId');
+     * </code>
+     * </pre>
+     *
+     * @param fields
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addGroupBy(String fields) {
         return this.addGroupBy(fields.trim().split(','));
     }
 
+    /**
+     * Adds a field in an SObjectField form to the
+     * group by Set of fields.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .groupBy(Account.Name);
+     * </code>
+     * </pre>
+     *
+     * @param field
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addGroupBy(SObjectField field) {
+        return this.addGroupBy(field.getDescribe().getName());
+    }
+
+    /**
+     * Adds a list of field to the
+     * group by Set of fields.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .groupBy(new List<String> {'Name'});
+     * </code>
+     * </pre>
+     *
+     * @param fields
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addGroupBy(List<String> fields) {
         this.groupByFields.addAll(fields);
         return this;
     }
 
+    /**
+     * Adds a set of field to the
+     * group by Set of fields.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .groupBy(new Set<String> {'Name'});
+     * </code>
+     * </pre>
+     *
+     * @param fields
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder addGroupBy(Set<String> fields) {
         this.groupByFields.addAll(fields);
         return this;
     }
 
-    //crud and fls check builder
+    /**
+     * Enables or disables CRUD and FLS check for current query.
+     * Default is disabled.
+     * <br/>
+     * Enabled CRUD check throws an System.NoAccessException if current user doesn't have access to an SObject.
+     * <br/>
+     * Enabled FLS check removes a field from result.
+     *
+     * @param checkCrudAndFls
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setCheckCRUDAndFLS(Boolean checkCrudAndFls) {
         this.setCheckCRUD(checkCrudAndFls);
         return this.setCheckFLS(checkCrudAndFls);
     }
 
+    /**
+     * Enables CRUD and FLS check for current query.
+     * <br/>
+     * Enabled CRUD check throws an System.NoAccessException if current user doesn't have access to an SObject.
+     * <br/>
+     * Enabled FLS check removes a field from result.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setCheckCRUDAndFLS() {
         return this.setCheckCRUDAndFLS(true);
     }
 
+    /**
+     * Enables or disables CRUD check for current query.
+     * <br/>
+     * Enabled CRUD check throws an System.NoAccessException if current user doesn't have access to an SObject.
+     *
+     * @param checkCrud
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setCheckCRUD(Boolean checkCrud) {
         this.checkCrud = checkCrud;
         return this;
     }
 
+    /**
+     * Enables CRUD check for current query.
+     * <br/>
+     * Enabled CRUD check throws an System.NoAccessException if current user doesn't have access to an SObject.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setCheckCRUD() {
         return this.setCheckCRUD(true);
     }
 
+    /**
+     * Enables or disables FLS check for current query.
+     * Default is disabled.
+     * <br/>
+     * Enabled FLS check removes a field from result.
+     *
+     * @param checkFls
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setCheckFLS(Boolean checkFls) {
         this.checkFls = checkFls;
         return this;
     }
 
+    /**
+     * Enables FLS check for current query.
+     * <br/>
+     * Enabled FLS check removes a field from result.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setCheckFLS() {
         return this.setCheckFLS(true);
     }
 
-    //stub method
+    /**
+     * Returns an instance of StubbedQueryBuilder, which can be used in Unit Tests.
+     *
+     * @return a new instance of QueryBuilder.StubbedQueryBuilder.class
+     */
     public StubbedQueryBuilder buildStub() {
         this.stubbedQueryBuilder = new StubbedQueryBuilder(this);
         return this.stubbedQueryBuilder;
     }
 
-    //pre-result managers
+    /**
+     * Builds a current state of query and outputs it to the debug console.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder preview() {
         String logRecord = '\n============RESULTING QUERY============\n\n'
                 + this.toString()
@@ -326,6 +1156,12 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * Builds a current state of query, replacing all the fields with COUNT(Id),
+     * exexutes it, and outputs the result to the debug console.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder previewCount() {
         if (this.countResult == null) {
             this.countResult = this.toCount();
@@ -337,6 +1173,11 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * Nullifies and re-creates all of the fields in current QueryBuilder instance.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder newQuery() {
         this.fieldTokens = new Set<String>();
         this.groupByFields = new Set<String>();
@@ -350,12 +1191,22 @@ public virtual with sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * Resets a result for current query.
+     * Otherwise, each new call to toList() method returns the same result.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder resetResult() {
         this.result = null;
         return this;
     }
 
-    //results
+    /**
+     * Builds a query based in current params.
+     *
+     * @return string representation of query
+     */
     public override String toString() {
         String result = 'SELECT ';
         String fields = '';
@@ -387,6 +1238,12 @@ public virtual with sharing class QueryBuilder {
         return result.trim();
     }
 
+    /**
+     * Builds a query, replacing all the selected fields with COUNT(Id)
+     * and returns as a string.
+     *
+     * @return string representation of query with COUNT(ID) instead of fields
+     */
     public String toStringCount() {
         String result = 'SELECT ';
         String countString = 'count() ';
@@ -398,6 +1255,12 @@ public virtual with sharing class QueryBuilder {
         return result.trim();
     }
 
+    /**
+     * Builds a query, replacing all the selected fields with COUNT(Id),
+     * executes it and returns a number of records.
+     *
+     * @return number of records
+     */
     public Integer toCount() {
         if (this.countResult == null) {
             this.countResult = Database.countQuery(this.toStringCount());
@@ -405,6 +1268,11 @@ public virtual with sharing class QueryBuilder {
         return this.countResult;
     }
 
+    /**
+     * Executes a query or returns already executed result as a list of SObjects
+     *
+     * @return list of SObjects
+     */
     public List<SObject> toList() {
         if (this.result == null) {
             List<SObject> result = Database.query(this.toString());
@@ -423,10 +1291,22 @@ public virtual with sharing class QueryBuilder {
         return this.result;
     }
 
+    /**
+     * Executes a query or returns already executed result as a map of SObjects by Id
+     *
+     * @return map of SObjects by Id
+     */
     public Map<Id, SObject> toMap() {
         return new Map<Id, SObject>(this.toList());
     }
 
+    /**
+     * Executes a query or returns already executed result and fills the max from params.
+     *
+     * @param mapToFill
+     *
+     * @return map of SObjects by Id
+     */
     public Map<Id, SObject> toMap(Map<Id, SObject> mapToFill) {
         for (SObject sobj : this.toList()) {
             Id sobjId = (Id) sobj.get('Id');
@@ -435,6 +1315,11 @@ public virtual with sharing class QueryBuilder {
         return mapToFill;
     }
 
+    /**
+     * Returns the first SObject from the query result.
+     *
+     * @return first SObject from query
+     */
     public SObject toSObject() {
         List<SObject> result = this.toList();
         if (result.isEmpty()) {
@@ -443,10 +1328,31 @@ public virtual with sharing class QueryBuilder {
         return result[0];
     }
 
+    /**
+     * Executes a query or returns already executed result as a set of Ids.
+     *
+     * @return set of Ids
+     */
     public Set<Id> toIdSet() {
         return this.toMap().keySet();
     }
 
+    /**
+     * Builds a query string and returns a QueryLocator
+     *
+     * @return Database.QueryLocator built based on query
+     */
+    public Database.QueryLocator toQueryLocator() {
+        return Database.getQueryLocator(this.toString());
+    }
+
+    /**
+     * Executes a query or returns already executed result as a set of Ids extracted from fields of resulted SObjects.
+     *
+     * @param fieldName
+     *
+     * @return set of Ids from query
+     */
     public Set<Id> extractIds(String fieldName) {
         Set<Id> result = new Set<Id>();
         for (SObject sobj : this.toList()) {
@@ -459,6 +1365,13 @@ public virtual with sharing class QueryBuilder {
         return result;
     }
 
+    /**
+     * Executes a query or returns already executed result as a list of Objects extracted from fields of resulted SObjects.
+     *
+     * @param fieldName - String name of a field
+     *
+     * @return list of Objects
+     */
     public List<Object> extractField(String fieldName) {
         List<Object> result = new List<Object>();
         for (SObject sobj : this.toList()) {
@@ -467,11 +1380,35 @@ public virtual with sharing class QueryBuilder {
         return result;
     }
 
-    //helper functions
+    /**
+     * Executes a query or returns already executed result as a list of Objects extracted from fields of resulted SObjects.
+     *
+     * @param fieldName - field in a form of SObjectField
+     *
+     * @return list of Objects
+     */
+    public List<Object> extractField(SObjectField field) {
+        List<Object> result = new List<Object>();
+        for (SObject sobj : this.toList()) {
+            result.add(sobj.get(field));
+        }
+        return result;
+    }
+
+    /**
+     * Clones a query builder. Doesn't clone the result list.
+     *
+     * @return new instance of QueryBuilder, based on current state
+     */
     public QueryBuilder cloneQueryBuilder() {
         return this.cloneQueryBuilder(false);
     }
 
+    /**
+     * Clones a query builder. Can include the list of already queried records.
+     *
+     * @return new instance of QueryBuilder, based on current state
+     */
     public QueryBuilder cloneQueryBuilder(Boolean includeResult) {
         QueryBuilder result = new QueryBuilder(this.fromSobject);
         result.addFields(this.fieldTokens);
@@ -485,9 +1422,12 @@ public virtual with sharing class QueryBuilder {
         return result;
     }
 
-    //helper classes
-
-    //conditions
+    /**
+     * Class, which allows building query conditions.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public class ConditionsManager {
 
         private final String BRACKET_L = '{';
@@ -577,6 +1517,12 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
+    /**
+     * Abstract class, which represent a condition, which can be added into ConditionsManager.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public abstract class Condition {
 
         public final String QUOTE = '\'';
@@ -617,6 +1563,13 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
+    /**
+     * Abstract class, which represent a condition, which can be added into ConditionsManager.
+     * The condition is field-dependent.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public abstract class FieldCondition extends Condition {
 
         protected String fieldName;
@@ -945,6 +1898,13 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
+    /**
+     * Abstract class, which represent a condition, which can be added into ConditionsManager.
+     * The condition is Object-type dependent.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public abstract class ObjectTypeDependentCondition extends Condition {
 
         private String objectType;
@@ -977,7 +1937,12 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
-    //orders
+    /**
+     * Virtual class for creating Order in Query.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public virtual class Order {
 
         private final String sortingField;
@@ -993,6 +1958,12 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
+    /**
+     * Class for ordering records Ascending.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public class AscOrder extends Order {
 
         public AscOrder(String sortingField) {
@@ -1000,6 +1971,12 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
+    /**
+     * Class for ordering records Descending.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public class DescOrder extends Order {
 
         public DescOrder(String sortingField) {
@@ -1202,7 +2179,13 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
-    //crud and fls checker
+    /**
+     * Class, which performs validation of list of SObjects.
+     * Can check CRUD and FLS.
+     *
+     * @author github.com/4an70m
+     * @version 1.0
+     */
     public class SObjectReadValidator {
 
         private List<SObject> sObjectsToValidate;
@@ -1264,8 +2247,6 @@ public virtual with sharing class QueryBuilder {
         }
     }
 
-
-    //exceptions (reserved for later use)
     public class QueryBuilderException extends Exception {
     }
 }
