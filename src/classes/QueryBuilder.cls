@@ -1744,6 +1744,11 @@ public virtual with sharing class QueryBuilder {
             this.formedCondition = this.fieldName + ' IN ' + this.buildInNoQuote(inSet);
             return this;
         }
+        
+        public Condition inCollection(QueryBuilder queryBuilder) {
+            this.formedCondition = this.fieldName + ' IN ' + this.bracket(queryBuilder.toString());
+            return this;
+        }
 
         //not in set
         public Condition notIn(List<SObject> inList) {
