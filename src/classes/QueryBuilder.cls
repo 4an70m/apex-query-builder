@@ -28,7 +28,7 @@
  * @author github.com/4an70m
  * @version 1.0
  */
-public virtual with sharing class QueryBuilder {
+public virtual inherited sharing class QueryBuilder {
 
     private String fromSobject;
     private Set<String> fieldTokens;
