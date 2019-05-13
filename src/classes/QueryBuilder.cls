@@ -30,10 +30,21 @@
  */
 public virtual inherited sharing class QueryBuilder {
 
+    public enum FilterScope {
+        Delegated,
+        Everything,
+        Mine,
+        MineAndMyGroups,
+        My_Territory,
+        My_Team_Territory,
+        Team
+    }
+
     private String fromSobject;
     private Set<String> fieldTokens;
     private Set<String> groupByFields;
     private List<Order> sortingOrder;
+    private FilterScope scope;
     private Integer queryLimit;
     private Integer queryOffset;
     private Integer countResult;
@@ -63,6 +74,7 @@ public virtual inherited sharing class QueryBuilder {
         this.countResult = null;
         this.checkCrud = false;
         this.checkFls = false;
+        this.scope = FilterScope.Everything;
     }
 
     /**
@@ -1052,6 +1064,12 @@ public virtual inherited sharing class QueryBuilder {
         return this;
     }
 
+    public QueryBuilder setScope(QueryBuilder.FilterScope scope) {
+        this.scope = scope;
+        return this;
+    }
+
+
     /**
      * Enables or disables CRUD and FLS check for current query.
      * Default is disabled.
@@ -1188,6 +1206,7 @@ public virtual inherited sharing class QueryBuilder {
         this.countResult = null;
         this.checkCrud = false;
         this.checkFls = false;
+        this.scope = FilterScope.Everything;
         return this;
     }
 
@@ -1219,6 +1238,9 @@ public virtual inherited sharing class QueryBuilder {
         result += 'FROM ' + this.fromSobject + ' ';
         if (this.conditionsManager.hasConditions()) {
             result += 'WHERE ' + this.conditionsManager.builtCondition + ' ';
+        }
+        if (this.scope != FilterScope.Everything) {
+            result += 'USING SCOPE ' + this.scope.name() + ' ';
         }
         if (!this.groupByFields.isEmpty()) {
             result += 'GROUP BY ';
@@ -1254,6 +1276,9 @@ public virtual inherited sharing class QueryBuilder {
         result += 'FROM ' + this.fromSobject + ' ';
         if (this.conditionsManager.hasConditions()) {
             result += 'WHERE ' + this.conditionsManager.builtCondition + ' ';
+        }
+        if (this.scope != FilterScope.Everything) {
+            result += 'USING SCOPE ' + this.scope.name() + ' ';
         }
         if (this.queryLimit > 0) {
             result += 'LIMIT ' + this.queryLimit + ' ';
