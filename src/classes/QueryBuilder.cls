@@ -1746,6 +1746,11 @@ public virtual inherited sharing class QueryBuilder {
             super(fieldName);
         }
 
+        public Condition inCollection(QueryBuilder queryBuilder) {
+            this.formedCondition = this.fieldName + ' IN ' + this.bracket(queryBuilder.toString());
+            return this;
+        }
+
         //in - set
         public Condition inCollection(List<SObject> inList) {
             return this.inCollection(new Map<Id, SObject>(inList));
@@ -1778,32 +1783,11 @@ public virtual inherited sharing class QueryBuilder {
             this.formedCondition = this.fieldName + ' IN ' + this.buildInNoQuote(inSet);
             return this;
         }
-        
-        public Condition inCollection(QueryBuilder queryBuilder) {
-            this.formedCondition = this.fieldName + ' IN ' + this.bracket(queryBuilder.toString());
-            return this;
-        }
 
-        //not in set
-        public Condition notIn(List<SObject> inList) {
-            return this.notIn(new Map<Id, SObject>(inList));
-        }
-
-        public Condition notIn(Map<Id, SObject> inSet) {
-            return this.notIn(inSet.keySet());
-        }
-
-        public Condition notIn(Set<Id> inSet) {
-            if (inSet.isEmpty()) {
-                this.formedCondition = '';
-            }
-            this.formedCondition = this.fieldName + ' NOT IN ' + this.buildIn(inSet);
-            return this;
-        }
-
+        //set helpers
         private String buildIn(Set<String> inSet) {
             return this.bracket(
-                    +this.QUOTE
+                            this.QUOTE
                             + String.join(new List<String> (inSet), this.QUOTE + ', ' + this.QUOTE)
                             + this.QUOTE
             );
@@ -1811,7 +1795,7 @@ public virtual inherited sharing class QueryBuilder {
 
         private String buildIn(Set<Id> inSet) {
             return this.bracket(
-                    +this.QUOTE
+                            this.QUOTE
                             + String.join(new List<Id> (inSet), this.QUOTE + ', ' + this.QUOTE)
                             + this.QUOTE
             );
@@ -1820,6 +1804,7 @@ public virtual inherited sharing class QueryBuilder {
         private String buildInNoQuote(Set<Decimal> inSet) {
             return this.bracket(String.join(new List<Decimal> (inSet), ', '));
         }
+
 
         //in - list
         public Condition inCollection(List<Id> inList) {
@@ -1846,6 +1831,19 @@ public virtual inherited sharing class QueryBuilder {
             return this;
         }
 
+        public Condition inCollection(List<PicklistEntry> inList) {
+            if (inList.isEmpty()) {
+                this.formedCondition = '';
+            }
+            Set<String> picklistEntryValues = new Set<String>();
+            for (PicklistEntry entry : inList) {
+                picklistEntryValues.add(entry.value);
+            }
+            this.inCollection(picklistEntryValues);
+            return this;
+        }
+
+        //list helpers
         private String buildIn(List<String> inList) {
             return this.bracket(
                     +this.QUOTE
@@ -1864,6 +1862,35 @@ public virtual inherited sharing class QueryBuilder {
 
         private String buildInNoQuote(List<Decimal> inList) {
             return this.bracket(String.join(inList, ', '));
+        }
+
+
+        //not in
+        public Condition notIn(List<SObject> inList) {
+            return this.notIn(new Map<Id, SObject>(inList));
+        }
+
+        public Condition notIn(Map<Id, SObject> inSet) {
+            return this.notIn(inSet.keySet());
+        }
+
+        public Condition notIn(Set<Id> inSet) {
+            if (inSet.isEmpty()) {
+                this.formedCondition = '';
+                return this;
+            }
+            this.formedCondition = this.fieldName + ' NOT IN ' + this.buildIn(inSet);
+            return this;
+        }
+
+        public Condition notIn(QueryBuilder queryBuilder) {
+            String builtSubQuery = queryBuilder.toString();
+            if (String.isEmpty(builtSubQuery)) {
+                this.formedCondition = '';
+                return this;
+            }
+            this.formedCondition = this.fieldName + ' IN ' + this.bracket(builtSubQuery);
+            return this;
         }
     }
 
