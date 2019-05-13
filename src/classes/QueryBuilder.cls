@@ -1233,7 +1233,10 @@ public virtual inherited sharing class QueryBuilder {
             result += String.join(orders, ', ') + ' ';
         }
         if (this.queryLimit > 0) {
-            result += 'LIMIT ' + queryLimit + ' ';
+            result += 'LIMIT ' + this.queryLimit + ' ';
+        }
+        if (this.queryOffset > 0) {
+            result += 'OFFSET ' + this.queryOffset + ' ';
         }
         return result.trim();
     }
@@ -1251,6 +1254,12 @@ public virtual inherited sharing class QueryBuilder {
         result += 'FROM ' + this.fromSobject + ' ';
         if (this.conditionsManager.hasConditions()) {
             result += 'WHERE ' + this.conditionsManager.builtCondition + ' ';
+        }
+        if (this.queryLimit > 0) {
+            result += 'LIMIT ' + this.queryLimit + ' ';
+        }
+        if (this.queryOffset > 0) {
+            result += 'OFFSET ' + this.queryOffset + ' ';
         }
         return result.trim();
     }
