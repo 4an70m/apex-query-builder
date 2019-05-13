@@ -890,6 +890,31 @@ public virtual inherited sharing class QueryBuilder {
     }
 
     /**
+     * Adds a SORT BY {Order} statement to the query.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .addOrder(
+     *          new QueryBuilder.Order(Account.Id)
+     *              .setSortingOrderAsc()
+     *              .setNullsOrderLast()
+     *      );
+     * </code>
+     * </pre>
+     *
+     * @param fieldName
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder addOrder(Order order) {
+        this.sortingOrder.add(order);
+        return this;
+    }
+
+    /**
      * Adds a SORT BY {field} ASC statement to the query.
      * Field name is specified as a string.
      *
@@ -2012,15 +2037,57 @@ public virtual inherited sharing class QueryBuilder {
     public virtual class Order {
 
         private final String sortingField;
-        private final String sortingOrder;
+        private String sortingOrder;
+        private String nullsOrder;
 
-        public Order(String sortingField, String sortingOrder) {
+        protected Order(String sortingField, String sortingOrder, String nullsOrder) {
             this.sortingField = sortingField;
             this.sortingOrder = sortingOrder;
+            this.nullsOrder = nullsOrder;
+        }
+
+        protected Order(String sortingField, String sortingOrder) {
+            this(sortingField, sortingOrder, '');
+        }
+
+        public Order(String sortingField) {
+            this(sortingField, 'ASC', '');
+        }
+
+        public Order(SObjectField sortingField) {
+            this(sortingField.getDescribe().getName());
+        }
+
+        public Order setSortingOrder(String sortingOrder) {
+            this.sortingOrder = sortingOrder;
+            return this;
+        }
+
+        public Order setSortingOrderAsc() {
+            return this.setSortingOrder('ASC');
+        }
+
+        public Order setSortingOrderDesc() {
+            return this.setSortingOrder('DESC');
+        }
+
+        public Order setNullsOrder(String nullsOrder) {
+            this.nullsOrder = nullsOrder;
+            return this;
+        }
+
+        public Order setNullsOrderFirst() {
+            return this.setNullsOrder('FIRST');
+        }
+
+        public Order setNullsOrderLast() {
+            return this.setNullsOrder('LAST');
         }
 
         public override String toString() {
-            return sortingField + ' ' + sortingOrder;
+            return this.sortingField
+                    + ' ' + this.sortingOrder
+                    + (String.isNotEmpty(this.nullsOrder) ? ' NULLS ' + this.nullsOrder : '');
         }
     }
 
