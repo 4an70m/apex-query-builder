@@ -1089,11 +1089,29 @@ public virtual inherited sharing class QueryBuilder {
         return this;
     }
 
+    /**
+     * The optional USING SCOPE clause of a SOQL query returns
+     * records within a specified scope. For example, you can limit
+     * the records to return only objects that the user owns
+     * or only records in the user’s territory.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setScope(QueryBuilder.FilterScope.Mine);
+     * </code>
+     * </pre>
+     *
+     * @param scope
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
     public QueryBuilder setScope(QueryBuilder.FilterScope scope) {
         this.scope = scope;
         return this;
     }
-
 
     /**
      * Enables or disables CRUD and FLS check for current query.
