@@ -48,6 +48,8 @@ public virtual inherited sharing class QueryBuilder {
     private Integer queryLimit;
     private Integer queryOffset;
     private Integer countResult;
+    private Boolean updateTracking;
+    private Boolean updateViewstat;
 
     private StubbedQueryBuilder stubbedQueryBuilder;
 
@@ -74,6 +76,8 @@ public virtual inherited sharing class QueryBuilder {
         this.countResult = null;
         this.checkCrud = false;
         this.checkFls = false;
+        this.updateTracking = false;
+        this.updateViewstat = false;
         this.scope = FilterScope.Everything;
     }
 
@@ -1090,7 +1094,7 @@ public virtual inherited sharing class QueryBuilder {
     }
 
     /**
-     * The optional USING SCOPE clause of a SOQL query returns
+     * Adds the optional USING SCOPE clause of a SOQL query returns
      * records within a specified scope. For example, you can limit
      * the records to return only objects that the user owns
      * or only records in the user’s territory.
@@ -1111,6 +1115,88 @@ public virtual inherited sharing class QueryBuilder {
     public QueryBuilder setScope(QueryBuilder.FilterScope scope) {
         this.scope = scope;
         return this;
+    }
+
+    /**
+     * Sets the UPDATE TRACKING optional clause on a SOQL query.
+     * UPDATE TRACKING can be added to a SELECT statement of a
+     * SOQL query to report on article searches and views to track
+     * the keywords that are used in Salesforce Knowledge article searches
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setUpdateTracking(true);
+     * </code>
+     * </pre>
+     *
+     * @return
+     */
+    public QueryBuilder setUpdateTracking(Boolean updateTracking) {
+        this.updateTracking = updateTracking;
+        return this;
+    }
+
+    /**
+     * Sets the UPDATE TRACKING optional clause on a SOQL query.
+     * UPDATE TRACKING can be added to a SELECT statement of a
+     * SOQL query to report on article searches and views to track
+     * the keywords that are used in Salesforce Knowledge article searches
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setUpdateTracking();
+     * </code>
+     * </pre>
+     *
+     * @return
+     */
+    public QueryBuilder setUpdateTracking() {
+        return this.setUpdateTracking(true);
+    }
+
+    /**
+     * Adds the UPDATE VIEWSTAT optional clause to the SOQL query.
+     * Allows get a view count for every article that you have access to online.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setUpdateViewstat(true);
+     * </code>
+     * </pre>
+     *
+     * @return
+     */
+    public QueryBuilder setUpdateViewstat(Boolean updateViewstat) {
+        this.updateViewstat = updateViewstat;
+        return this;
+    }
+
+    /**
+     * Adds the UPDATE VIEWSTAT optional clause to the SOQL query.
+     * Allows get a view count for every article that you have access to online.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setUpdateViewstat();
+     * </code>
+     * </pre>
+     *
+     * @return
+     */
+    public QueryBuilder setUpdateViewstat() {
+        return this.setUpdateViewstat(true);
     }
 
     /**
@@ -1249,6 +1335,8 @@ public virtual inherited sharing class QueryBuilder {
         this.countResult = null;
         this.checkCrud = false;
         this.checkFls = false;
+        this.updateTracking = false;
+        this.updateViewstat = false;
         this.scope = FilterScope.Everything;
         return this;
     }
@@ -1302,6 +1390,15 @@ public virtual inherited sharing class QueryBuilder {
         }
         if (this.queryOffset > 0) {
             result += 'OFFSET ' + this.queryOffset + ' ';
+        }
+        if (this.updateTracking && this.updateViewstat) {
+            result += 'UPDATE TRACKING, VIEWSTAT';
+        }
+        if (this.updateTracking && !this.updateViewstat) {
+            result += 'UPDATE TRACKING';
+        }
+        if (!this.updateTracking && this.updateViewstat) {
+            result += 'UPDATE VIEWSTAT';
         }
         return result.trim();
     }
