@@ -50,6 +50,8 @@ public virtual inherited sharing class QueryBuilder {
     private Integer countResult;
     private Boolean updateTracking;
     private Boolean updateViewstat;
+    private Boolean forView;
+    private Boolean forReference;
 
     private StubbedQueryBuilder stubbedQueryBuilder;
 
@@ -78,6 +80,8 @@ public virtual inherited sharing class QueryBuilder {
         this.checkFls = false;
         this.updateTracking = false;
         this.updateViewstat = false;
+        this.forView = false;
+        this.forReference = false;
         this.scope = FilterScope.Everything;
     }
 
@@ -1118,6 +1122,94 @@ public virtual inherited sharing class QueryBuilder {
     }
 
     /**
+     * Adds FOR VIEW clause in to the query.
+     * Allows to update LastViewedDate on retrieved objects.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setForView(true);
+     * </code>
+     * </pre>
+     *
+     * @param forView
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder setForView(Boolean forView) {
+        this.forView = this.forView;
+        return this;
+    }
+
+    /**
+     * Adds FOR VIEW clause in to the query.
+     * Allows to update LastViewedDate on retrieved objects.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setForView();
+     * </code>
+     * </pre>
+     *
+     * @param forView
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder setForView() {
+        this.forView = true;
+        return this;
+    }
+
+    /**
+     * Adds FOR REFERENCE clause in to the query.
+     * Allows to update LastReferencedDate on retrieved objects.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setForReference(true);
+     * </code>
+     * </pre>
+     *
+     * @param forReference
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder setForReference(Boolean forReference) {
+        this.forReference = this.forReference;
+        return this;
+    }
+
+    /**
+     * Adds FOR REFERENCE clause in to the query.
+     * Allows to update LastReferencedDate on retrieved objects.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * new QueryBuilder(Account.class)
+     *     .setForView();
+     * </code>
+     * </pre>
+     *
+     * @param forReference
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder setForReference() {
+        this.forReference = true;
+        return this;
+    }
+
+    /**
      * Sets the UPDATE TRACKING optional clause on a SOQL query.
      * UPDATE TRACKING can be added to a SELECT statement of a
      * SOQL query to report on article searches and views to track
@@ -1337,6 +1429,8 @@ public virtual inherited sharing class QueryBuilder {
         this.checkFls = false;
         this.updateTracking = false;
         this.updateViewstat = false;
+        this.forView = false;
+        this.forReference = false;
         this.scope = FilterScope.Everything;
         return this;
     }
@@ -1365,17 +1459,17 @@ public virtual inherited sharing class QueryBuilder {
         } else {
             fields = String.join(new List<String>(this.fieldTokens), ', ');
         }
-        result += fields + ' ';
-        result += 'FROM ' + this.fromSobject + ' ';
+        result += fields + '\n ';
+        result += 'FROM ' + this.fromSobject + '\n ';
         if (this.conditionsManager.hasConditions()) {
-            result += 'WHERE ' + this.conditionsManager.builtCondition + ' ';
+            result += 'WHERE ' + this.conditionsManager.builtCondition + '\n ';
         }
         if (this.scope != FilterScope.Everything) {
-            result += 'USING SCOPE ' + this.scope.name() + ' ';
+            result += 'USING SCOPE ' + this.scope.name() + '\n ';
         }
         if (!this.groupByFields.isEmpty()) {
             result += 'GROUP BY ';
-            result += String.join(new List<String>(this.groupByFields), ', ') + ' ';
+            result += String.join(new List<String>(this.groupByFields), ', ') + '\n ';
         }
         if (!this.sortingOrder.isEmpty()) {
             result += 'ORDER BY ';
@@ -1383,14 +1477,22 @@ public virtual inherited sharing class QueryBuilder {
             for (Order order : this.sortingOrder) {
                 orders.add(order.toString());
             }
-            result += String.join(orders, ', ') + ' ';
+            result += String.join(orders, ', ') + ' \n';
         }
         if (this.queryLimit > 0) {
-            result += 'LIMIT ' + this.queryLimit + ' ';
+            result += 'LIMIT ' + this.queryLimit + ' \n';
         }
         if (this.queryOffset > 0) {
-            result += 'OFFSET ' + this.queryOffset + ' ';
+            result += 'OFFSET ' + this.queryOffset + ' \n';
         }
+
+        if ((this.forView && !this.forReference) || (this.forView && this.forReference)) {
+            result += 'FOR VIEW \n';
+        }
+        if (!this.forView && this.forReference) {
+            result += 'FOR REFERENCE \n';
+        }
+
         if (this.updateTracking && this.updateViewstat) {
             result += 'UPDATE TRACKING, VIEWSTAT';
         }
@@ -1400,6 +1502,8 @@ public virtual inherited sharing class QueryBuilder {
         if (!this.updateTracking && this.updateViewstat) {
             result += 'UPDATE VIEWSTAT';
         }
+
+
         return result.trim();
     }
 
