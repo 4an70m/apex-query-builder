@@ -356,7 +356,7 @@ public virtual inherited sharing class QueryBuilder {
      * </code>
      * </pre>
      *
-     * @param fieldName
+     * @param sobj
      *
      * @return this - current instance of QueryBuilder.class
      */
