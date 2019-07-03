@@ -684,15 +684,15 @@ public virtual inherited sharing class QueryBuilder {
         Schema.SObjectType objectType = Schema.getGlobalDescribe().get(sobjectName);
         Map<String, Schema.SObjectField> fieldMap = objectType.getDescribe().fields.getMap();
 
-        Set<String> createableFields = new Set<String>{
+        Set<String> updateableFields = new Set<String>{
         };
         for (Schema.SObjectField field : fieldMap.values()) {
             DescribeFieldResult fieldDescribe = field.getDescribe();
             if (fieldDescribe.isUpdateable()) {
-                createableFields.add(fieldDescribe.getName());
+                updateableFields.add(fieldDescribe.getName());
             }
         }
-        fieldTokens.addAll(createableFields);
+        fieldTokens.addAll(updateableFields);
         return this;
     }
 
