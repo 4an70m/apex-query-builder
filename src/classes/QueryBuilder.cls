@@ -814,6 +814,7 @@ public virtual inherited sharing class QueryBuilder {
 
     /**
      * Adds all fields from a specific FieldSet by its name.
+     * The FROM sobject must be specified before calling to this method.
      *
      * <br/><br/>
      * <p><b>Example</b></p>
