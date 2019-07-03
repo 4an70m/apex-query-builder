@@ -853,6 +853,7 @@ public virtual inherited sharing class QueryBuilder {
      * <p>As a parameter accepts a string with order of conditions execution and there relations</p>
      * <p>To finish work with conditions and return to work with QueryBuilder instance
      * it is required to call the endConditions() method of ConditionsManager</p>
+     * <p>Condition index is 1-based<p>
      *
      * <br/><br/>
      * <p><b>Example</b></p>
