@@ -30,6 +30,11 @@
  */
 public virtual inherited sharing class QueryBuilder {
 
+    public static Map<String, QueryBuilder> stubRegistry;
+    static {
+        stubRegistry = new Map<String, QueryBuilder>();
+    }
+
     public enum FilterScope {
         Delegated,
         Everything,
@@ -1375,6 +1380,36 @@ public virtual inherited sharing class QueryBuilder {
     }
 
     /**
+     * Register named query to stub it from test method.
+     *
+     * <br/><br/>
+     * <p><b>Example</b></p>
+     * <pre>
+     * <code>
+     * //real class
+     * new QueryBuilder(Account.class)
+     *     .namedQueryRegister('unique_query_name')
+     *     .toString();
+     *
+     * <br/>
+     * //test class
+     * new QueryBuilder(Account.class)
+     *     .buildStub()
+     *     .addStubToString('fake query string')
+     *     .namedQueryStub('unique_query_name')
+     *     .applyStub();
+     * </code>
+     * </pre>
+     *
+     * @param name
+     *
+     * @return
+     */
+    public QueryBuilder namedQueryRegister(String name) {
+        return stubRegistry.containsKey(name) ? stubRegistry.get(name) : this;
+    }
+
+    /**
      * Returns an instance of StubbedQueryBuilder, which can be used in Unit Tests.
      *
      * @return a new instance of QueryBuilder.StubbedQueryBuilder.class
@@ -2442,6 +2477,37 @@ public virtual inherited sharing class QueryBuilder {
                 this.parent = this.stubbedQueryBuilder;
             }
             return (QueryBuilder) this.parent;
+        }
+
+        /**
+         * Stub registered named query. Use only in test methods.
+         *
+         * <br/><br/>
+         * <p><b>Example</b></p>
+         * <pre>
+         * <code>
+         * //real class
+         * new QueryBuilder(Account.class)
+         *     .namedQueryRegister('unique_query_name')
+         *     .toString();
+         *
+         * <br/>
+         * //test class
+         * new QueryBuilder(Account.class)
+         *     .buildStub()
+         *     .addStubToString('fake query string')
+         *     .namedQueryStub('unique_query_name')
+         *     .applyStub();
+         * </code>
+         * </pre>
+         *
+         * @param queryName
+         *
+         * @return current instance of StubbedQueryBuilder
+         */
+        public StubbedQueryBuilder namedQueryStub(String queryName) {
+            stubRegistry.put(queryName, this.stubbedQueryBuilder);
+            return this;
         }
 
         //stub building methods
