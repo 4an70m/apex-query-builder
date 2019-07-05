@@ -30,7 +30,7 @@
  */
 public virtual inherited sharing class QueryBuilder {
 
-    public static Map<String, QueryBuilder> stubRegistry;
+    private static Map<String, QueryBuilder> stubRegistry;
     static {
         stubRegistry = new Map<String, QueryBuilder>();
     }
@@ -2578,8 +2578,10 @@ public virtual inherited sharing class QueryBuilder {
         }
 
         private Map<Id, SObject> stubToMap(Map<Id, SObject> mapToFill) {
-            mapToFill = this.toMapFillResult;
-            return this.toMapFillResult;
+            for (Id sobjId : this.toMapResult.keySet()) {
+                mapToFill.put(sobjId, this.toMapResult.get(sobjId));
+            }
+            return mapToFill;
         }
 
         private SObject stubToSObject() {
