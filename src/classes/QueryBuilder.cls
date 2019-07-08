@@ -52,6 +52,7 @@ public virtual inherited sharing class QueryBuilder {
     private Boolean updateViewstat;
     private Boolean forView;
     private Boolean forReference;
+    private Boolean withSecurityEnforced;
 
     private StubbedQueryBuilder stubbedQueryBuilder;
 
@@ -82,6 +83,7 @@ public virtual inherited sharing class QueryBuilder {
         this.updateViewstat = false;
         this.forView = false;
         this.forReference = false;
+        this.withSecurityEnforced = false;
         this.scope = FilterScope.Everything;
     }
 
@@ -1310,6 +1312,27 @@ public virtual inherited sharing class QueryBuilder {
     }
 
     /**
+     * <h1>THIS IS BETA FUNCTIONALITY</h1>
+     * Enables CRUD and FLS check for current query.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder setWithSecurityEnforced() {
+        return this.setWithSecurityEnforced(true);
+    }
+
+    /**
+     * <h1>THIS IS BETA FUNCTIONALITY</h1>
+     * Enables CRUD and FLS check for current query.
+     *
+     * @return this - current instance of QueryBuilder.class
+     */
+    public QueryBuilder setWithSecurityEnforced(Boolean withSecurityEnforced) {
+        this.withSecurityEnforced = withSecurityEnforced;
+        return this;
+    }
+
+    /**
      * Enables CRUD and FLS check for current query.
      * <br/>
      * Enabled CRUD check throws an System.NoAccessException if current user doesn't have access to an SObject.
@@ -1432,6 +1455,7 @@ public virtual inherited sharing class QueryBuilder {
         this.updateViewstat = false;
         this.forView = false;
         this.forReference = false;
+        this.withSecurityEnforced = false;
         this.scope = FilterScope.Everything;
         return this;
     }
@@ -1467,7 +1491,10 @@ public virtual inherited sharing class QueryBuilder {
         }
         if (this.scope != FilterScope.Everything) {
             result += 'USING SCOPE ' + this.scope.name() + '\n ';
+        if (this.withSecurityEnforced) {
+            result += 'WITH SECURITY_ENFORCED \n';
         }
+
         if (!this.groupByFields.isEmpty()) {
             result += 'GROUP BY ';
             result += String.join(new List<String>(this.groupByFields), ', ') + '\n ';
