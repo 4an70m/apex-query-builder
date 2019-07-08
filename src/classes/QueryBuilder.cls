@@ -1482,22 +1482,23 @@ public virtual inherited sharing class QueryBuilder {
         if (this.fieldTokens.isEmpty()) {
             fields = 'Id';
         } else {
-            fields = String.join(new List<String>(this.fieldTokens), ', ');
+            fields = String.join(new List<String>(this.fieldTokens), '\n\t, ');
         }
-        result += fields + '\n ';
-        result += 'FROM ' + this.fromSobject + '\n ';
-        if (this.conditionsManager.hasConditions()) {
-            result += 'WHERE ' + this.conditionsManager.builtCondition + '\n ';
-        }
+        result += fields + ' \n';
+        result += 'FROM ' + this.fromSobject + ' \n';
         if (this.scope != FilterScope.Everything) {
-            result += 'USING SCOPE ' + this.scope.name() + '\n ';
+            result += 'USING SCOPE ' + this.scope.name() + ' \n';
+        }
+        if (this.conditionsManager.hasConditions()) {
+            result += 'WHERE ' + this.conditionsManager.builtCondition + ' \n';
+        }
         if (this.withSecurityEnforced) {
             result += 'WITH SECURITY_ENFORCED \n';
         }
 
         if (!this.groupByFields.isEmpty()) {
             result += 'GROUP BY ';
-            result += String.join(new List<String>(this.groupByFields), ', ') + '\n ';
+            result += String.join(new List<String>(this.groupByFields), ', ') + ' \n';
         }
         if (!this.sortingOrder.isEmpty()) {
             result += 'ORDER BY ';
