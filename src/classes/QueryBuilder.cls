@@ -1585,12 +1585,12 @@ public virtual inherited sharing class QueryBuilder {
             List<SObject> result = Database.query(this.toString());
             SObjectReadValidator sObjectReadValidator;
             if (this.checkCrud || this.checkFls) {
-                sObjectReadValidator = new SObjectReadValidator(result);
+                SObjectReadValidator = new SObjectReadValidator(result);
                 if (this.checkCrud) {
                     sObjectReadValidator.checkObjectAccess();
                 }
                 if (this.checkFls) {
-                    sObjectReadValidator.checkFieldsAccess();
+                    SObjectReadValidator.checkFieldsAccess();
                 }
             }
             this.result = result;
