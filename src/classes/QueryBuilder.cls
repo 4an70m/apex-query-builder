@@ -273,7 +273,7 @@ public virtual inherited sharing class QueryBuilder {
      * @return this - current instance of QueryBuilder.class
      */
     public QueryBuilder addSubQuery(QueryBuilder queryBuilder) {
-        return this.addField('(' + queryBuilder.toString() + ')');
+        return this.addSubQuery(queryBuilder.toString());
     }
 
     /**
@@ -294,7 +294,8 @@ public virtual inherited sharing class QueryBuilder {
      * @return this - current instance of QueryBuilder.class
      */
     public QueryBuilder addSubQuery(String subQueryString) {
-        return this.addField('(' + subQueryString + ')');
+        this.fieldTokens.add('(' + subQueryString + ')');
+        return this;
     }
 
     /**
