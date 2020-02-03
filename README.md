@@ -34,8 +34,8 @@ There are situations, when you want to retrieve data from the Salesforce databas
     new QueryBuilder(Account.class).addField('Name');
     new QueryBuilder(Account.class).addField('Name, Id');
     new QueryBuilder(Account.class).addFields('Name, Id');
-    new QueryBuilder(Account.class).addField(new List<String>{'Name'});
-    new QueryBuilder(Account.class).addField(new Set<String>{'Name'});
+    new QueryBuilder(Account.class).addFields(new List<String>{'Name'});
+    new QueryBuilder(Account.class).addFields(new Set<String>{'Name'});
 ```
 
 ### Adding MORE fields
@@ -43,7 +43,7 @@ There are situations, when you want to retrieve data from the Salesforce databas
 ```Apex
     new QueryBuilder(Account.class).addFieldsAll();
     new QueryBuilder(Account.class).addFieldsAllCreatable();
-    new QueryBuilder(Account.class).addFieldsAllUpdatatble();
+    new QueryBuilder(Account.class).addFieldsAllUpdatable();
 ```
 #### Field Sets
 ```Apex
@@ -63,9 +63,9 @@ There are situations, when you want to retrieve data from the Salesforce databas
     new QueryBuilder(Account.class)
         .setLimit(1)
         .setOffset(1)
-        .setOrderAsc('Id')
-        .setOrderDesc(Account.Name)
-        .setGroupBy('Id');
+        .addOrderAsc('Id')
+        .addOrderDesc(Account.Name)
+        .addGroupBy('Id');
 ```
 
 ### CRUD and FLS built-in check
@@ -109,7 +109,7 @@ There are situations, when you want to retrieve data from the Salesforce databas
 ```Apex
     new QueryBuilder(Account.class)
         .addConditions()
-        .add(new QueryBuilder.SimpleCondition('Name = \'Test\'')
+        .add(new QueryBuilder.SimpleCondition('Name = \'Test\''))
         .endConditions();
 ```
 
