@@ -670,7 +670,7 @@ public with sharing class QueryBuilderTest {
     public static void testToString() {
         String queryString = new QueryBuilder(Account.class)
                 .toString();
-        System.assertEquals('SELECT Id FROM Account', queryString);
+        System.assertEquals('SELECT Id \nFROM Account', queryString);
     }
 
     @IsTest
@@ -761,14 +761,14 @@ public with sharing class QueryBuilderTest {
     @IsTest
     public static void testClone1() {
         QueryBuilder qb1 = new QueryBuilder('Account');
-        System.assertEquals('SELECT Id FROM Account', qb1.toString());
+        System.assertEquals('SELECT Id \nFROM Account', qb1.toString());
 
         QueryBuilder qb2 = qb1.cloneQueryBuilder();
         qb2.addField('Name');
 
         qb1.resetResult();
-        System.assertEquals('SELECT Id FROM Account', qb1.toString());
-        System.assertEquals('SELECT Name FROM Account', qb2.toString());
+        System.assertEquals('SELECT Id \nFROM Account', qb1.toString());
+        System.assertEquals('SELECT Name \nFROM Account', qb2.toString());
     }
 
     @IsTest
