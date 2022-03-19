@@ -1815,7 +1815,7 @@ public virtual inherited sharing class QueryBuilder {
             this.conditions.size();
             for (Integer i = 1; i <= this.conditions.size(); i++) {
                 String conditionNumber = '' + i;
-                conditions = conditions.replace(conditionNumber, this.bracket(conditionNumber));
+                conditions = conditions.replaceFirst(conditionNumber, this.bracket(conditionNumber));
             }
             return conditions;
         }
