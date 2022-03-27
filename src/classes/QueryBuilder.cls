@@ -2076,7 +2076,7 @@ public virtual inherited sharing class QueryBuilder {
         //set helpers
         private String buildIn(Set<String> inSet) {
             return this.bracket(
-                       this.QUOTE
+                    this.QUOTE
                             + String.join(new List<String> (inSet), this.QUOTE + ', ' + this.QUOTE)
                             + this.QUOTE
             );
@@ -2084,7 +2084,7 @@ public virtual inherited sharing class QueryBuilder {
 
         private String buildIn(Set<Id> inSet) {
             return this.bracket(
-                       this.QUOTE
+                    this.QUOTE
                             + String.join(new List<Id> (inSet), this.QUOTE + ', ' + this.QUOTE)
                             + this.QUOTE
             );
