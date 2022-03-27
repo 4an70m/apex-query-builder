@@ -1972,7 +1972,17 @@ public virtual inherited sharing class QueryBuilder {
             return this;
         }
 
+        public Condition lte(String fieldValue) {
+            this.formedCondition = this.fieldName + ' <= ' + fieldValue;
+            return this;
+        }
+
         public Condition gte(Decimal fieldValue) {
+            this.formedCondition = this.fieldName + ' >= ' + fieldValue;
+            return this;
+        }
+
+        public Condition gte(String fieldValue) {
             this.formedCondition = this.fieldName + ' >= ' + fieldValue;
             return this;
         }
@@ -2006,6 +2016,11 @@ public virtual inherited sharing class QueryBuilder {
 
         public Condition likeAnyRight(String fieldValue) {
             this.formedCondition = this.fieldName + ' LIKE ' + this.quote(fieldValue + '%');
+            return this;
+        }
+
+        public Condition notLikeAnyBoth(String fieldValue){
+            this.formedCondition = ' (NOT ' + this.fieldName + ' LIKE ' + this.quote('%' + fieldValue + '%') + ')';
             return this;
         }
     }
@@ -2061,7 +2076,7 @@ public virtual inherited sharing class QueryBuilder {
         //set helpers
         private String buildIn(Set<String> inSet) {
             return this.bracket(
-                            this.QUOTE
+                    this.QUOTE
                             + String.join(new List<String> (inSet), this.QUOTE + ', ' + this.QUOTE)
                             + this.QUOTE
             );
@@ -2069,7 +2084,7 @@ public virtual inherited sharing class QueryBuilder {
 
         private String buildIn(Set<Id> inSet) {
             return this.bracket(
-                            this.QUOTE
+                    this.QUOTE
                             + String.join(new List<Id> (inSet), this.QUOTE + ', ' + this.QUOTE)
                             + this.QUOTE
             );
@@ -2154,6 +2169,22 @@ public virtual inherited sharing class QueryBuilder {
                 return this;
             }
             this.formedCondition = this.fieldName + ' NOT IN ' + this.buildIn(inSet);
+            return this;
+        }
+
+        public Condition notIn(Set<String> inSet) {
+            if (inSet.isEmpty()) {
+                this.formedCondition = '';
+            }
+            this.formedCondition = this.fieldName + ' NOT IN ' + this.buildIn(inSet);
+            return this;
+        }
+
+        public Condition notIn(List<String> inList) {
+            if (inList.isEmpty()) {
+                this.formedCondition = '';
+            }
+            this.formedCondition = this.fieldName + ' NOT IN ' + this.buildIn(inList);
             return this;
         }
 
